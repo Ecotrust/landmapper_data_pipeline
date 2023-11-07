@@ -39,6 +39,9 @@ Project Organization
 
 --------
 
+Add dotenv file with required environmental variables
+    echo DATADIR=/path/to/datadir/ > .env
+
 Setup dev environment with mamba:
 
     mamba env create -f environment.yml
