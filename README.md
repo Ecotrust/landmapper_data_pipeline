@@ -39,7 +39,7 @@ Project Organization
 
 --------
 
-Add dotenv file with required environmental variables
+Add dotenv file with required environment variables.
 
     echo DATADIR=/path/to/datadir/ > .env
 
