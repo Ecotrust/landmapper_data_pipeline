@@ -26,7 +26,7 @@ Project Organization
     │
     ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
     |
-    └── src_pipelines      <- Source code for data pipelines.
+    └── src                <- Source code for data pipelines.
         |
         └── forest_types   <- Forest Types data generation pipeline.
 

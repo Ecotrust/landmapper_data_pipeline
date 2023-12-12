@@ -175,7 +175,7 @@ class fSegNetDataset(Dataset):
 if __name__ == "__main__":
     # TODO: Add tests
     # validate_dataloader()
-    from src_pipelines.utils import ConfigLoader
+    from src.utils import ConfigLoader
 
     params = ConfigLoader(Path(__file__).parent)
     conf = params.load()

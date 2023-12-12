@@ -9,7 +9,7 @@ import rasterio.mask
 from rasterio.warp import Resampling
 from rasterio.crs import CRS
 
-from src_pipelines.utils import (
+from src.utils import (
     image_collection,
     html_to_rgb,
     ConfigLoader,

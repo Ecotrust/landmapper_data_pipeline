@@ -19,13 +19,13 @@ from rio_cogeo.cogeo import cog_translate
 from rio_cogeo.profiles import cog_profiles
 from tqdm import tqdm
 
-from src_pipelines.utils import (
+from src.utils import (
     Denormalize,
     multithreaded_execution,
     ConfigLoader,
 )
-from src_pipelines.forest_types.dataloader import fSegNetDataset
-from src_pipelines.forest_types.models import UNet
+from src.forest_types.dataloader import fSegNetDataset
+from src.forest_types.models import UNet
 
 # %%
 conf = ConfigLoader(Path(__file__).parent).load()
@@ -44,7 +44,7 @@ if device.type == "cuda":
     torch.cuda.set_device(device)
 root = Path(conf.DATADIR) / "tiles"
 outdir = Path(conf.DATADIR) / f"predictions/{MODEL_NAME}"
-modelpath = f"src_pipelines/forest_types/trained_models/{MODEL_NAME}.pth"
+modelpath = f"src/forest_types/trained_models/{MODEL_NAME}.pth"
 
 # Add indexes of bands to use for each input layer during training
 use_bands = {

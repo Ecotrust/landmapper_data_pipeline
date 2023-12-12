@@ -1,11 +1,11 @@
 
 # %%
-from src_pipelines.utils.utils import (
+from src.utils.utils import (
     ConfigLoader,
     multithreaded_execution,
 )
 
-from src_pipelines.utils.imgutils import (
+from src.utils.imgutils import (
     Denormalize,
     save_cog,
     image_collection,
