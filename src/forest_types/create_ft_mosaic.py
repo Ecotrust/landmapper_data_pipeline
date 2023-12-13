@@ -9,7 +9,7 @@ import rasterio.mask
 from rasterio.warp import Resampling
 from rasterio.crs import CRS
 
-from src.utils import (
+from gdstools import (
     image_collection,
     html_to_rgb,
     ConfigLoader,

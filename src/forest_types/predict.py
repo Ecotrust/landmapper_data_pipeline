@@ -19,7 +19,7 @@ from rio_cogeo.cogeo import cog_translate
 from rio_cogeo.profiles import cog_profiles
 from tqdm import tqdm
 
-from src.utils import (
+from gdstools import (
     Denormalize,
     multithreaded_execution,
     ConfigLoader,
@@ -44,7 +44,7 @@ if device.type == "cuda":
     torch.cuda.set_device(device)
 root = Path(conf.DATADIR) / "tiles"
 outdir = Path(conf.DATADIR) / f"predictions/{MODEL_NAME}"
-modelpath = f"src/forest_types/trained_models/{MODEL_NAME}.pth"
+modelpath = f"./models/forest_types/{MODEL_NAME}.pth"
 
 # Add indexes of bands to use for each input layer during training
 use_bands = {
