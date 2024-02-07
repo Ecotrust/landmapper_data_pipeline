@@ -31,10 +31,12 @@ dependencies:
   - torchvision=0.15.2
   - torchmetrics 
   - tqdm
+  - pysheds
   - pip
   - pip:
       - geetools
       - python-dotenv>=0.5.1
       - torchgeo
+      - wget
       - git+https://github.com/Ecotrust/gdstools@v0.1
       - -e . # install the package in editable mode
