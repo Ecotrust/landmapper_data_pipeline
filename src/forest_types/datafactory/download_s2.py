@@ -14,7 +14,7 @@ from rio_cogeo.profiles import cog_profiles
 import numpy as np
 import geopandas as gpd
 import ee
-from pyproj import CRS
+# from pyproj import CRS
 
 from gdstools import (
     GEEImageLoader,
@@ -245,7 +245,7 @@ def bbox_padding(geom, padding=1e3):
 if __name__ == "__main__":
 
     # Load configuration parameters
-    YEAR = 2022
+    YEAR = 2023
     run_as = 'dev'
 
     conf = ConfigLoader(Path(__file__).parent.parent).load()
@@ -276,7 +276,7 @@ if __name__ == "__main__":
     # qq_shp = qq_shp[qq_shp.CELL_ID.isin(qq_shp.head(20).CELL_ID)].copy()
     params = [
         {
-            'bbox': row.geometry.bounds, #bbox_padding(row.geometry),
+            'bbox': row.geometry.buffer(0.004, join_style=2).bounds, #bbox_padding(row.geometry),
             'dim': 2,
             'year': YEAR,
             'state': row.STATE,
@@ -291,7 +291,7 @@ if __name__ == "__main__":
     ]
 
     # quad_fetch(**params[0])
-    multithreaded_execution(quad_fetch, params, 20)
+    multithreaded_execution(quad_fetch, params, 5)
 
     # params[params == 'leafon'] = 'leafoff'
     # multithreaded_download(params, get_dworld)

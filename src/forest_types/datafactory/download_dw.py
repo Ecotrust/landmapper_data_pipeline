@@ -184,7 +184,7 @@ if __name__ == "__main__":
     # %%
     # Load config
     run_as = 'dev'
-    YEAR = 2022
+    YEAR = 2023
     conf = ConfigLoader(Path(__file__).parent.parent).load()
     dw = conf.dynamic_world
     WORKERS = 20
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     # %%
     params = [
         {
-            "bbox": row.geometry.bounds, #bbox_padding(row.geometry),
+            "bbox": row.geometry.buffer(0.004, join_style=2).bounds,
             "year": YEAR,
             "path": DATADIR / f"dynamic_world/{YEAR}",
             "prefix": f"{row.CELL_ID}_",

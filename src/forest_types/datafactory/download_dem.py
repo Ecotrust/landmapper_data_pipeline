@@ -28,7 +28,7 @@ from skimage.util import apply_parallel
 from tqdm import tqdm
 from pyproj import CRS
 
-from src.utils import (
+from gdstools import (
     degrees_to_meters,
     split_bbox,
     multithreaded_execution,
@@ -93,7 +93,12 @@ def dem_from_tnm(bbox, res=10, crs=4326, **kwargs):
     for key, value in kwargs.items():
         params.update({key: value})
 
-    r = requests.get(BASE_URL, params=params)
+    try:
+        r = requests.get(BASE_URL, params=params)
+    except requests.exceptions.RequestException as error:
+        print(f"Failed to fetch DEM. Exception raised: {error}")
+        return
+
     with MemoryFile(r.content) as memfile:
         src = memfile.open()
         dem = src.read(1)
@@ -623,7 +628,13 @@ def fetch_metadata(filename, bands, res, out_dir='.'):
 
     URL = 'https://elevation.nationalmap.gov/arcgis/'\
           'rest/services/3DEPElevation/ImageServer?f=pjson'
-    r = requests.get(URL)
+
+    try:
+        r = requests.get(URL)
+    except requests.exceptions.RequestException as error:
+        print(f"Failed to fetch metadata for {filename}. Exception raised: {error}")
+        return False
+    
     src_metadata = r.json()
 
     metadata = {}
@@ -843,10 +854,6 @@ if __name__ == '__main__':
     if run_as == 'dev':
         DATADIR = Path(conf.DEV_DATADIR) / 'tiles'
 
-    
-    # OR_QUADS = "missing_orwa_qq.geojson"
-    # OR_QUADS = "USGS_CellGrid_3_75Minute_ORWA_epsg4326.geojson"
-    # STATE = 'WA'
     out_path = DATADIR / '3dep'
     out_path.mkdir(parents=True, exist_ok=True)
 
@@ -856,13 +863,14 @@ if __name__ == '__main__':
     params = [
         {
             'cell_id': row.CELL_ID,
-            'geom': row.geometry,
+            'geom': row.geometry.buffer(0.004, join_style=2),
             'state': row.STATE,
             'out_dir': out_path,
             'res': 10,
-            'overwrite': False
+            'overwrite': True
         } for row in gdf.itertuples()
     ]
 
-    # fetch_dems(**params[0])
-    multithreaded_execution(fetch_dems, params, 20)
+    # Recomend to use 10 threads max to avoid rasterio error: 
+    # not recognized as a supported file format
+    multithreaded_execution(fetch_dems, params, 10)
