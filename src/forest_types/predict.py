@@ -31,11 +31,12 @@ from src.forest_types.models import UNet
 conf = ConfigLoader(Path(__file__).parent).load()
 
 MODEL_NAME = "train_f-climate_prod172023051012"
+YEAR = 2023
 GPUID = 0
 DEVICE_LIST = [0, 1, 2]
 PARALLEL = True
 WORKERS = 4
-SIZE = 840  # size of testing tiles
+SIZE = 780  # size of testing tiles
 BATCH_SIZE = 5
 ND_CLASS = 0
 
@@ -43,7 +44,7 @@ device = torch.device(f"cuda:{GPUID}" if torch.cuda.is_available() else "cpu")
 if device.type == "cuda":
     torch.cuda.set_device(device)
 root = Path(conf.DATADIR) / "tiles"
-outdir = Path(conf.DATADIR) / f"predictions/{MODEL_NAME}"
+outdir = Path(conf.DATADIR) / f"predictions/forest_types/{MODEL_NAME}_{YEAR}"
 modelpath = f"./models/forest_types/{MODEL_NAME}.pth"
 
 # Add indexes of bands to use for each input layer during training
@@ -58,6 +59,7 @@ labels = label_conf["labels"]
 outchannels = len(labels.keys())
 df = pd.read_csv(root / "metadata.csv")
 df = df[df.collection.isin(input_lyrs)]
+df = df[df.year.isin([YEAR, 9999])]
 
 # The stats dict contains mean and std for all image bands. The full image stack
 # is composed of 46 bands, but we only use a subset of them for training.
@@ -86,7 +88,11 @@ dts = fSegNetDataset(
     transform=transforms.Compose([normalize]),
 )
 dataloader = DataLoader(
-    dts, batch_size=BATCH_SIZE, shuffle=True, num_workers=WORKERS, drop_last=True
+    dts, 
+    batch_size=BATCH_SIZE, 
+    shuffle=True, 
+    num_workers=WORKERS, 
+    drop_last=True
 )
 
 # %%
@@ -110,9 +116,9 @@ confusion = ConfusionMatrix(task="multiclass", num_classes=outchannels + 1).to(d
 
 
 # %%
-def save_image(image, transform, path, dtype=rasterio.uint8):
+def save_image(image, transform, path, dtype=rasterio.uint8, overwrite=False):
     cog_profile = cog_profiles.get("deflate")
-    if not os.path.exists(path):
+    if not os.path.exists(path) or overwrite:
         crs = CRS.from_epsg(4326)
 
         with MemoryFile() as memfile:
@@ -152,6 +158,7 @@ with torch.no_grad():
                 "transform": t,
                 "path": p,
                 "dtype": rasterio.uint8,
+                "overwrite": True,
             }
             for i, t, p in zip(predictions, transforms, filenames)
         ]
