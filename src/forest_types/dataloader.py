@@ -63,12 +63,6 @@ class fSegNetDataset(Dataset):
         images = self.df.query("cellid == @cellid & target == 0").to_dict("records")
 
         info = images[0]
-        xmax = info["width"] - self.size
-        ymax = info["height"] - self.size
-        xoff = xmax // 2
-        yoff = ymax // 2
-        window = Window(xoff, yoff, self.size, self.size)
-
         centroid_x = int(1e5 * info["centroid_x"])
         centroid_y = int(1e5 * info["centroid_y"])
 
@@ -100,6 +94,11 @@ class fSegNetDataset(Dataset):
             fcls = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
             with rasterio.open(target_dict["filepath"]) as src:
+                xmax = src.shape[0] - self.size
+                ymax = src.shape[1] - self.size
+                xoff = xmax // 2
+                yoff = ymax // 2
+                window = Window(xoff, yoff, self.size, self.size)
                 src_target = src.read(1, window=window)
 
                 target = np.zeros((window.width, window.height), dtype=np.uint8)
@@ -132,6 +131,11 @@ class fSegNetDataset(Dataset):
                 raise IndexError(f"Layer {layer} not found in input layers")
 
             with rasterio.open(image_path) as src:
+                xmax = src.shape[1] - self.size
+                ymax = src.shape[0] - self.size
+                xoff = xmax // 2
+                yoff = ymax // 2
+                window = Window(xoff, yoff, self.size, self.size)
                 profiles.append(src.profile)
                 if self.use_bands:
                     try:
@@ -175,20 +179,22 @@ class fSegNetDataset(Dataset):
 if __name__ == "__main__":
     # TODO: Add tests
     # validate_dataloader()
-    from src.utils import ConfigLoader
+    from gdstools import ConfigLoader
 
+    YEAR = 2023
     params = ConfigLoader(Path(__file__).parent)
     conf = params.load()
-    root = Path(conf.PROJDIR) / "data/dev"
+    root = Path(conf.DATADIR) / "tiles"
 
-    task = "train"
+    task = "inference"
     device = "cuda:1"
     torch.cuda.set_device(device)
 
     df = pd.read_csv(root / "metadata.csv")
+    df = df[df.year.isin([YEAR, 9999])]
     # df = df.query('dataset == "train"')
     use_bands = {
-        "sentinel2har": [1, 2, 3, 4, 5, 6, 7, 8, 11, 12],
+        "sentinel2sr": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         "climatena": [13, 16, 23],
         "3dep": [1, 2, 3],
     }
@@ -197,14 +203,19 @@ if __name__ == "__main__":
         root=root,
         dataframe=df,
         use_bands=use_bands,
-        size=336,
-        input_layers=["sentinel2har", "climatena", "3dep"],
+        size=750,
+        input_layers=["sentinel2sr", "climatena", "3dep"],
     )
     dataloader = DataLoader(ftpdataset, batch_size=5, shuffle=False, num_workers=10)
 
+    i = 0
     for batch in dataloader:
         print(batch["image"].to(device).shape)
+
         if task == "train":
             print(batch["mask"].to(device).shape)
             print(batch["nodata"].to(device).shape)
-        break
+
+        i += 1
+        if i > 2:
+            break
