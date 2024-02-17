@@ -1,4 +1,4 @@
-name: landmapper-test
+name: landmapper-dpl
 
 channels:
   - pytorch

@@ -1,7 +1,7 @@
-landmapper_data_pipeline
-==============================
+LandMapper Data Pipeline
+========================
 
-Data fetching and data generation pipelines for LandMapper
+Data fetching and processing pipeline for LandMapper.
 
 Project Organization
 ------------
@@ -9,22 +9,20 @@ Project Organization
     ├── LICENSE
     ├── README.md          <- The top-level README for developers using this project.
     |
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
+    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details.
     │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
+    ├── models             <- Trained and serialized models, model predictions, or model summaries.
     │
-    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                         the creator's initials, and a short `-` delimited description, e.g.
-    │                         `1.0-jqp-initial-data-exploration`.
+    ├── notebooks          <- Jupyter notebooks.
     │
     ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
     │
     ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures        <- Generated graphics and figures to be used in reporting
+    │   └── figures        <- Generated graphics and figures to be used in reporting.
     │
-    ├── environment.yaml   <- Python dependencies for reproducing the environment.
+    ├── environment.yml    <- Python dependencies for reproducing the environment.
     │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
+    ├── setup.py           <- makes project pip installable so src can be imported.
     |
     └── src                <- Source code for data pipelines.
         |
@@ -34,11 +32,14 @@ Project Organization
 
 Add dotenv file with required environment variables.
 
-    echo DATADIR=/path/to/datadir/ > .env
-
+```bash
+echo DATADIR=/path/to/datadir/ > .env
+```
 Setup dev environment with mamba:
 
-    mamba env create -f environment.yml
-    conda activate landmapper-dpl
+```bash
+mamba env create -f environment.yml
+mamba activate landmapper-dpl
+```
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>

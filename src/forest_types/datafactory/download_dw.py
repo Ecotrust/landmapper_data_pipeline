@@ -1,7 +1,8 @@
 # %%
 from pathlib import Path
-import glob
+import glob, sys
 from datetime import datetime
+import argparse
 
 import numpy as np
 import geopandas as gpd
@@ -182,15 +183,21 @@ def bbox_padding(geom, padding=1e3):
 # %%
 if __name__ == "__main__":
     # %%
+    parser = argparse.ArgumentParser('Fetch Dynamic World data from Google Earth Engine.')
+    parser.add_argument('-y', '--year', help='Year to download', type=int)
+    parser.add_argument('--dev', help='Run scrip in dev mode', action="store_false")
+    parser.add_argument('-o', '--overwrite', help='Overwrite file if already exists', action="store_true")
+
+    args = parser.parse_args(sys.argv[2:])
+
     # Load config
-    run_as = 'dev'
-    YEAR = 2023
+    YEAR = args.year
     conf = ConfigLoader(Path(__file__).parent.parent).load()
     dw = conf.dynamic_world
     WORKERS = 20
     DATADIR = Path(conf.DATADIR) / "tiles"
     grid = gpd.read_file(conf.GRID)
-    if run_as == 'dev':
+    if args.dev:
         DATADIR = Path(conf.DEV_DATADIR) / "tiles"
         grid = grid.sort_values("CELL_ID").iloc[:10]
 
@@ -208,7 +215,7 @@ if __name__ == "__main__":
             "path": DATADIR / f"dynamic_world/{YEAR}",
             "prefix": f"{row.CELL_ID}_",
             "season": "leafon",
-            "overwrite": True,
+            "overwrite": args.overwrite,
         }
         for row in grid.itertuples()
     ]

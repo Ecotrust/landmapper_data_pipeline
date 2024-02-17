@@ -4,15 +4,16 @@ Download Digital Elevation Model (DEM) from the 3DEP web service and calculate t
 # %%
 import os
 import sys
-from typing import List, Tuple
+from typing import Union, Tuple
+import argparse
 import requests
 from pathlib import Path
 import contextlib
 from functools import partial
 from multiprocessing.pool import ThreadPool
 from PIL import Image
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 import numpy as np
 import geopandas as gpd
 import rasterio
@@ -106,7 +107,9 @@ def dem_from_tnm(bbox, res=10, crs=4326, **kwargs):
     return dem
 
 
-def download_dem(filepath:str or Path, bbox:tuple, res:int=10, incrs:int=4326, **kwargs):
+from typing import Union
+
+def download_dem(filepath: Union[str, Path], bbox: tuple, res: int = 10, incrs: int = 4326, **kwargs):
     """
     Retrieves a Digital Elevation Model (DEM) image from The National Map (TNM)
     web service.
@@ -670,7 +673,7 @@ def fetch_dems(
     cell_id: str,
     geom: gpd.GeoSeries,
     state: str,
-    out_dir: str or Path,
+    out_dir: Union[str, Path],
     res:int=10,
     padding:int=1e3,
     overwrite:bool=False,
@@ -845,20 +848,23 @@ def fetch_dems(
 
 # %%
 if __name__ == '__main__':
-    conf = ConfigLoader(Path(__file__).parent.parent).load()
+    parser = argparse.ArgumentParser('Fetch DEM and compute topographic metrics')
+    parser.add_argument('--dev', help='Run scrip in dev mode', action="store_false")
+    parser.add_argument('-o', '--overwrite', help='Overwrite file if already exists', action="store_true")
 
-    run_as = 'dev'
+    args = parser.parse_args(sys.argv[2:])
+
+    conf = ConfigLoader(Path(__file__).parent.parent).load()
 
     GRID = conf.GRID   
     DATADIR = Path(conf.DATADIR) / 'tiles'
-    if run_as == 'dev':
+    gdf = gpd.read_file(GRID)
+    if args.dev:
         DATADIR = Path(conf.DEV_DATADIR) / 'tiles'
+        gdf = gdf.sort_values(by='CELL_ID').iloc[0:10]
 
     out_path = DATADIR / '3dep'
     out_path.mkdir(parents=True, exist_ok=True)
-
-    gdf = gpd.read_file(GRID)
-    gdf = gdf.sort_values(by='CELL_ID').iloc[0:10]
 
     params = [
         {
@@ -867,10 +873,9 @@ if __name__ == '__main__':
             'state': row.STATE,
             'out_dir': out_path,
             'res': 10,
-            'overwrite': True
+            'overwrite': args.overwrite,
         } for row in gdf.itertuples()
     ]
-
-    # Recomend to use 10 threads max to avoid rasterio error: 
-    # not recognized as a supported file format
-    multithreaded_execution(fetch_dems, params, 10)
+    
+    # Try 10 or less threads if you get rasterio error `not recognized as a supported file format`
+    multithreaded_execution(fetch_dems, params, 3)
