@@ -1,7 +1,7 @@
 Land Mapper Data Pipeline
 ========================
 
-The purpose of the Land Mapper Data Pipeline is to streamline the workflow for fetching, processing, and updating geospatial data layers used in [Land Mapper's](https://github.com/Ecotrust/landmapper) mapping platform. It consists of Jupyter notebooks and scripts for fetching and processing raster and vector data from various public repositories, as well as the code to refresh the map layers with new data. The pipeline integrates code to update the following layers available in Land Mapper: Forest Community Type, Tree Size Class, Canopy Cover, Forest Stocking, Soil Type, and Taxlots.
+The purpose of the Land Mapper Data Pipeline is to streamline the workflow for fetching, processing, and updating geospatial data layers used in [Land Mapper's](https://github.com/Ecotrust/landmapper) mapping platform. It consists of Jupyter notebooks and python scripts for fetching and processing raster and vector data from various public repositories, as well as the code to refresh the map layers with new data. The pipeline integrates code to update the following layers available in Land Mapper: Forest Community Type, Tree Size Class, Canopy Cover, Forest Stocking, Soil Type, and Taxlots.
 
 The repository is organized as follows 
 
@@ -22,7 +22,7 @@ The repository is organized as follows
     │
     ├── environment.yml    <- Python dependencies for reproducing the environment.
     │
-    ├── setup.py           <- makes project pip installable so src can be imported.
+    ├── setup.py           <- Makes project pip installable so src can be imported.
     |
     └── src                <- Source code for data pipelines.
         |
@@ -45,7 +45,7 @@ Usage
 --------
 ## Refreshing the Forest Community Types layer
 
-To generate the Forest Community Types map we use a pre-trained UNet model. The model was trained on a dataset of 13 forest community types for Oregon and Washington State. The input data for the model consists of a stack of Sentinel-2 surface reflectance imagery, an 8-band raster with a DEM and 7 topographic metrics, and an 8-band raster with climate variables from PRISM. 
+To generate the Forest Community Types map we use a pre-trained UNet model. The model was trained on forest composition data produced by the [LEMMA research group](https://lemma.forestry.oregonstate.edu/data) at Oregon State University for Oregon and Washington State. The input data for the model consists of a stack of Sentinel-2 surface reflectance imagery, an 8-band raster with a DEM and 7 topographic metrics, and an 8-band raster with climate variables from PRISM. 
 
 The model predicts the following community types:
 
@@ -107,6 +107,8 @@ python download_s2.py --year <year>
 python download_dw.py --year <year>
 ```
 
+Note: We will add instruction to download and process PRISM climate data soon.
+
 ### 3. Generate forest community type predictions
 
 Run the script `predict.py`
@@ -145,5 +147,16 @@ Run the following Jupyter notebooks:
 - Predict_Forest_Structure-Oregon.ipynb
 - Predict_Forest_Structure-Washington.ipynb
 
+## Refreshing the Soil Type layer
+
+Instructions coming soon.
+
 --------
+
+## Refreshing the Taxlots layer
+
+Instructions coming soon.
+
+--------
+
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
