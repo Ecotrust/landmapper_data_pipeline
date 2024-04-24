@@ -26,6 +26,8 @@ from gdstools import (
     print_message
 )
 
+from src import config
+
 # warnings.filterwarnings("ignore", message="Default upsampling behavior")
 # warnings.filterwarnings(
 #     'ignore', category=rasterio.errors.NotGeoreferencedWarning)
@@ -57,7 +59,7 @@ def get_sentinel2(
     prefix=None,
     season="leafon",
     bands=None,
-    gee_collection='COPERNICUS/S2_HARMONIZED',
+    gee_collection='COPERNICUS/S2_SR_HARMONIZED',
     alias='Sentinel2HAR',
     overwrite=False,
     epsg=4326,
@@ -245,6 +247,7 @@ def bbox_padding(geom, padding=1e3):
 # %%
 if __name__ == "__main__":
 
+    # config = ConfigLoader(Path(__file__).parent.parent).load()
     parser = argparse.ArgumentParser('Fetch Sentinel-2 SR from Google Earth Engine.')
     parser.add_argument('-y', '--year', help='Year to download', type=int)
     parser.add_argument('--dev', help='Run scrip in dev mode', action="store_false")
@@ -255,18 +258,17 @@ if __name__ == "__main__":
     # Load configuration parameters
     YEAR = args.year
 
-    conf = ConfigLoader(Path(__file__).parent.parent).load()
-    datadir = Path(conf.DATADIR) / 'tiles'
-    grid = gpd.read_file(conf.GRID)
+    datadir = Path(config.DATADIR) / 'tiles'
+    grid = gpd.read_file(config.GRID)
     if args.dev:
-        datadir = Path(conf.DEV_DATADIR) / 'tiles'
+        datadir = Path(config.DEV_DATADIR) / 'tiles'
         grid = grid.sort_values('CELL_ID').iloc[:10]
 
-    datarepo = Path(conf.DATADIR) / 'interim'
-    alias = conf.sentinel2sr['alias']
-    api_url = conf.sentinel2sr['api_url']
-    bands = list(conf.sentinel2sr['bands'].keys())
-    collection = conf.sentinel2sr['collection']
+    datarepo = Path(config.DATADIR) / 'interim'
+    alias = config.sentinel2sr['alias']
+    api_url = config.sentinel2sr['api_url']
+    bands = list(config.sentinel2sr['bands'].keys())
+    collection = config.sentinel2sr['collection']
 
     # Initialize the Earth Engine module.
     # Setup your Google Earth Engine API key before running this script.

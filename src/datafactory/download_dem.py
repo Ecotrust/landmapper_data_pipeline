@@ -37,6 +37,8 @@ from gdstools import (
     ConfigLoader
 )
 
+from src import config
+
 def dem_from_tnm(bbox, res=10, crs=4326, **kwargs):
     """
     Retrieve a Digital Elevation Model (DEM) image from The National Map (TNM)
@@ -848,19 +850,17 @@ def fetch_dems(
 
 # %%
 if __name__ == '__main__':
+    # config = ConfigLoader(Path(__file__).parent.parent).load()
     parser = argparse.ArgumentParser('Fetch DEM and compute topographic metrics')
     parser.add_argument('--dev', help='Run scrip in dev mode', action="store_false")
     parser.add_argument('-o', '--overwrite', help='Overwrite file if already exists', action="store_true")
-
     args = parser.parse_args(sys.argv[2:])
 
-    conf = ConfigLoader(Path(__file__).parent.parent).load()
-
-    GRID = conf.GRID   
-    DATADIR = Path(conf.DATADIR) / 'tiles'
+    GRID = config.GRID   
+    DATADIR = Path(config.DATADIR) / 'tiles'
     gdf = gpd.read_file(GRID)
     if args.dev:
-        DATADIR = Path(conf.DEV_DATADIR) / 'tiles'
+        DATADIR = Path(config.DEV_DATADIR) / 'tiles'
         gdf = gdf.sort_values(by='CELL_ID').iloc[0:10]
 
     out_path = DATADIR / '3dep'

@@ -10,7 +10,7 @@ import ee
 from pyproj import CRS
 
 from gdstools import multithreaded_execution, GEEImageLoader, ConfigLoader
-
+from src import config
 
 # %%
 def get_dworld(
@@ -183,6 +183,7 @@ def bbox_padding(geom, padding=1e3):
 # %%
 if __name__ == "__main__":
     # %%
+    # config = ConfigLoader(Path(__file__).parent.parent).load()
     parser = argparse.ArgumentParser('Fetch Dynamic World data from Google Earth Engine.')
     parser.add_argument('-y', '--year', help='Year to download', type=int)
     parser.add_argument('--dev', help='Run scrip in dev mode', action="store_false")
@@ -192,13 +193,12 @@ if __name__ == "__main__":
 
     # Load config
     YEAR = args.year
-    conf = ConfigLoader(Path(__file__).parent.parent).load()
-    dw = conf.dynamic_world
+    dw = config.dynamic_world
     WORKERS = 20
-    DATADIR = Path(conf.DATADIR) / "tiles"
-    grid = gpd.read_file(conf.GRID)
+    DATADIR = Path(config.DATADIR) / "tiles"
+    grid = gpd.read_file(config.GRID)
     if args.dev:
-        DATADIR = Path(conf.DEV_DATADIR) / "tiles"
+        DATADIR = Path(config.DEV_DATADIR) / "tiles"
         grid = grid.sort_values("CELL_ID").iloc[:10]
 
     # Initialize the Earth Engine module.
