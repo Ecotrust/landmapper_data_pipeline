@@ -23,7 +23,7 @@ class fSegNetDataset(Dataset):
         dataframe: pd.DataFrame,
         input_layers: List[str],
         reclass_dict: Dict[int, List[int]] = None,
-        size: int = 256,
+        size=None,
         samples_per_epoch: int = 5,
         random_state: int = 42,
         transform: Optional[Callable] = None,
@@ -61,8 +61,17 @@ class fSegNetDataset(Dataset):
     def __getitem__(self, index):
         cellid = self.cellids[index]
         images = self.df.query("cellid == @cellid & target == 0").to_dict("records")
-
         info = images[0]
+
+        if self.size:
+            xmax = info["width"] - self.size
+            ymax = info["height"] - self.size
+            xoff = xmax // 2
+            yoff = ymax // 2
+            window = Window(xoff, yoff, self.size, self.size)
+        else:
+            window = None
+        
         centroid_x = int(1e5 * info["centroid_x"])
         centroid_y = int(1e5 * info["centroid_y"])
 
@@ -94,11 +103,6 @@ class fSegNetDataset(Dataset):
             fcls = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
             with rasterio.open(target_dict["filepath"]) as src:
-                xmax = src.shape[0] - self.size
-                ymax = src.shape[1] - self.size
-                xoff = xmax // 2
-                yoff = ymax // 2
-                window = Window(xoff, yoff, self.size, self.size)
                 src_target = src.read(1, window=window)
 
                 target = np.zeros((window.width, window.height), dtype=np.uint8)
@@ -131,12 +135,11 @@ class fSegNetDataset(Dataset):
                 raise IndexError(f"Layer {layer} not found in input layers")
 
             with rasterio.open(image_path) as src:
-                xmax = src.shape[1] - self.size
-                ymax = src.shape[0] - self.size
-                xoff = xmax // 2
-                yoff = ymax // 2
-                window = Window(xoff, yoff, self.size, self.size)
-                profiles.append(src.profile)
+                if window:
+                    profiles.append(src.window_transform(window))
+                else:
+                    profiles.append(src.transform)
+
                 if self.use_bands:
                     try:
                         bands = self.use_bands[layer]
@@ -149,19 +152,23 @@ class fSegNetDataset(Dataset):
                 input_data.append(data)
 
         # Compute new transform
-        new_origin = rasterio.transform.xy(
-            profiles[0]["transform"], yoff, xoff, offset="ul"
-        )
-        pxx = profiles[0]["transform"][0]
+        # new_origin = rasterio.transform.xy(
+        #     profiles[0]["transform"], yoff, xoff, offset="ul"
+        # )
+        # pxx = profiles[0]["transform"][0]
         # pxy = profiles[0]['transform'][1]
-        new_transform = rasterio.transform.from_origin(*new_origin, pxx, pxx)
+        new_transform = profiles[0] #rasterio.transform.from_origin(*new_origin, pxx, pxx)
 
         # Create centroid latlon layer to add as a channel to input images
-        latlon = np.zeros((window.width, window.height), dtype=np.longlong)
+        if window:
+            latlon = np.zeros((window.width, window.height), dtype=np.longlong)
+        else:
+            latlon = np.zeros((info["width"], info["height"]), dtype=np.longlong)
+
         latlon.fill(centroid_x)
         input_data.append(np.expand_dims(latlon, 0))
-
         image = torch.FloatTensor(np.vstack(input_data))
+
         if self.transform:
             image = self.transform(image)
 
