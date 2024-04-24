@@ -4,7 +4,7 @@ setup(
     name='src',
     packages=find_packages(),
     version='0.1.0',
-    description='Data fetching and data generation pipelines for LandMapper',
+    description='Data fetching and processing pipelines for LandMapper',
     author='Ecotrust',
-    license='BSD-3',
+    license='MIT',
 )
