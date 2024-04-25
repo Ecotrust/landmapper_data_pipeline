@@ -1,14 +1,13 @@
 import os
+import sys
+import argparse
 from pathlib import Path
-import geopandas as gpd
 
 import ee
-import rasterio
-from skimage.transform import resize
+import geopandas as gpd
 
 from gdstools import (
     multithreaded_execution, 
-    ConfigLoader,
     save_cog
 )
 
@@ -52,13 +51,18 @@ def download_images(
 if __name__ == "__main__":
     # Load configuration parameters
     # config = ConfigLoader(Path(__file__).parent.parent).load()
-    YEAR = 2023
-    epsg = 4326
-    run_as = 'dev'
+    parser = argparse.ArgumentParser('Fetch LandTrendr data from Google Earth Engine.')
+    parser.add_argument('-y', '--year', help='Year to download', type=int)
+    parser.add_argument('--dev', help='Run scrip in dev mode', action="store_false")
+    parser.add_argument('-o', '--overwrite', help='Overwrite file if already exists', action="store_true")
+    args = parser.parse_args(sys.argv[2:])
+
+    # Load configuration parameters
+    YEAR = args.year
 
     datadir = Path(config.DATADIR) / 'processed/tiles' 
     grid = gpd.read_file(config.GRID)
-    if run_as == 'dev':
+    if args.dev:
         # datadir = Path(conf.DEV_DATADIR) / 'processed/tiles' 
         cellids = [273467, 184829, 134775, 247655, 116879, 132833, 213207, 181485, 132835, 116877, 181694, 114676, 298270, 228075, 184595, 312284, 144231, 270215, 275909]
         # 2023 data for these tiles failed to download. Fetching 2022 data instead
@@ -75,7 +79,7 @@ if __name__ == "__main__":
         {
             "row": row,
             "out_dir": datadir,
-            "epsg": epsg,
+            "epsg": 4326,
             "year": YEAR,
             "scale": 30,
             "overwrite": True,
