@@ -79,11 +79,11 @@ if __name__ == "__main__":
         {
             "row": row,
             "out_dir": datadir,
-            "epsg": 4326,
+            "epsg": grid.crs.to_epsg(),
             "year": YEAR,
             "scale": 30,
             "overwrite": True,
-        } for row in grid.to_crs(epsg).itertuples()
+        } for row in grid.itertuples()
     ]
 
     # Download the data
