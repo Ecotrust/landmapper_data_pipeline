@@ -474,6 +474,7 @@ def get_landtrendr_download_url(bbox, year, epsg, scale=30):
         filePerBand=False,
         scale=scale,
         crs=f"EPSG:{epsg}",
+        
         formatOptions={"cloudOptimized": True},
     )
     url = lt_img.clip(aoi).getDownloadURL(url_params)
@@ -548,8 +549,10 @@ def get_sentinel2_collections(aoi, year):
     )
     leafon_coll = leafon_coll.map(maskS2clouds).map(maskS2Edges)
 
-    BANDS = ["B2", "B3", "B4", "B8", "B11", "B12", "B5", "B6", "B7", "B8A"]
-    MAP_TO = ["B", "G", "R", "NIR", "SWIR1", "SWIR2", "RE1", "RE2", "RE3", "RE4"]
+    # BANDS = ["B2", "B3", "B4", "B8", "B11", "B12", "B5", "B6", "B7", "B8A"]
+    # MAP_TO = ["B", "G", "R", "NIR", "SWIR1", "SWIR2", "RE1", "RE2", "RE3", "RE4"]
+    BANDS = ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"]
+    MAP_TO = ["B", "G", "R", "RE1", "RE2", "RE3", "NIR", "RE4", "SWIR1", "SWIR2"]
 
     return leafoff_coll.select(BANDS, MAP_TO), leafon_coll.select(BANDS, MAP_TO)
 
@@ -610,8 +613,8 @@ def get_sentinel2_composites(aoi, year, season="leafon"):
             leafoff_img.select(["RE1_median"], ["RE1_LEAFOFF"]),
             leafoff_img.select(["RE2_median"], ["RE2_LEAFOFF"]),
             leafoff_img.select(["RE3_median"], ["RE3_LEAFOFF"]),
-            leafoff_img.select(["RE4_median"], ["RE4_LEAFOFF"]),
             leafoff_img.select(["NIR_median"], ["NIR_LEAFOFF"]),
+            leafoff_img.select(["RE4_median"], ["RE4_LEAFOFF"]),
             leafoff_img.select(["SWIR1_median"], ["SWIR1_LEAFOFF"]),
             leafoff_img.select(["SWIR2_median"], ["SWIR2_LEAFOFF"]),
             leafon_img.select(["B_median"], ["B_LEAFON"]),
@@ -620,8 +623,8 @@ def get_sentinel2_composites(aoi, year, season="leafon"):
             leafon_img.select(["RE1_median"], ["RE1_LEAFON"]),
             leafon_img.select(["RE2_median"], ["RE2_LEAFON"]),
             leafon_img.select(["RE3_median"], ["RE3_LEAFON"]),
-            leafon_img.select(["RE4_median"], ["RE4_LEAFON"]),
             leafon_img.select(["NIR_median"], ["NIR_LEAFON"]),
+            leafon_img.select(["RE4_median"], ["RE4_LEAFON"]),
             leafon_img.select(["SWIR1_median"], ["SWIR1_LEAFON"]),
             leafon_img.select(["SWIR2_median"], ["SWIR2_LEAFON"]),
         ).set("system:time_start", leafon_img.get("system:time_start"))
@@ -633,8 +636,8 @@ def get_sentinel2_composites(aoi, year, season="leafon"):
             leafon_img.select(["RE1_median"], ["RE1_LEAFON"]),
             leafon_img.select(["RE2_median"], ["RE2_LEAFON"]),
             leafon_img.select(["RE3_median"], ["RE3_LEAFON"]),
-            leafon_img.select(["RE4_median"], ["RE4_LEAFON"]),
             leafon_img.select(["NIR_median"], ["NIR_LEAFON"]),
+            leafon_img.select(["RE4_median"], ["RE4_LEAFON"]),
             leafon_img.select(["SWIR1_median"], ["SWIR1_LEAFON"]),
             leafon_img.select(["SWIR2_median"], ["SWIR2_LEAFON"]),
         ).set("system:time_start", leafon_img.get("system:time_start"))
@@ -646,8 +649,8 @@ def get_sentinel2_composites(aoi, year, season="leafon"):
             leafoff_img.select(["RE1_median"], ["RE1_LEAFOFF"]),
             leafoff_img.select(["RE2_median"], ["RE2_LEAFOFF"]),
             leafoff_img.select(["RE3_median"], ["RE3_LEAFOFF"]),
-            leafoff_img.select(["RE4_median"], ["RE4_LEAFOFF"]),
             leafoff_img.select(["NIR_median"], ["NIR_LEAFOFF"]),
+            leafoff_img.select(["RE4_median"], ["RE4_LEAFOFF"]),
             leafoff_img.select(["SWIR1_median"], ["SWIR1_LEAFOFF"]),
             leafoff_img.select(["SWIR2_median"], ["SWIR2_LEAFOFF"]),
         ).set("system:time_start", leafoff_img.get("system:time_start"))
