@@ -26,7 +26,9 @@ The repository is organized as follows
     |
     └── src                <- Source code for data pipelines.
         |
-        └── forest_types   <- Forest Community Types data generation pipeline.
+        ├── datafactory    <- Scripts to download and process data.
+        ├── composition    <- Scripts to generate the Forest Community Types layer.
+        └── structure      <- Scripts to generate the Forest Structure layers.
 --------
 
 Installation
@@ -39,10 +41,60 @@ cd landmapper_data_pipeline
 mamba env create -f environment.yml
 mamba activate landmapper-dpl
 ```
+
+Run the following commands to setup the environment variables in a `.env` file in the `src` directory:
+
+```
+echo DATADIR=/path/to/data > .env
+echo GRID=/path/to/usgs_grid >> .env
+```
+
+`DATADIR` is the path to the directory containing the input data and the destination for predictions. The following directories and datasets are expected:
+
+    DATADIR
+    |── tiles
+    |   ├── climatena       <-- PRISM 1971-2000 gridded monthly climate data
+    |   ├── 3dep            <-- Elevation data from the USGS 3D Elevation Program
+    |   ├── sentinel2sr     <-- Sentinel-2 surface reflectance imagery with 10-bands
+    |   ├── landtrendr      <-- LandTrendr forest change data
+    |   └── dynamic_world   <-- Forest/non-forest mask from Dynamic World
+    └── predictions         <-- Output directory for model predictions
+
+ `GRID` is the path to the USGS quarter quads grid geojson file.
+
 --------
 
 Usage
 --------
+
+## Download new input data
+
+`datafactory/download_dem.py` - Fetchs DEM from the USGS 3D Elevation Program (3DEP) and calculates the following layers: Slope, Aspect, Flow Accumulation, Topographic Position Index (TPI300 and TPI2000), Slope Position Class (SPC300), and Land Form Class. All layers are saved in a single GeoTIFF file with 8 bands.
+
+```bash
+python download_dem.py
+```
+
+`datafactory/download_s2.py` - Fetches Sentinel-2 surface reflectance imagery from Google Earth Engine. The bands fetched are: B2, B3, B4, B5, B6, B7, B8, B8A, B11, and B12.
+
+```bash
+python download_s2.py --year <year>
+```
+
+`datafactory/download_dw.py` - Fetches a forest/non-forest mask from Dynamic World land cover classification available in Google Earth Engine. 
+
+```bash
+python download_dw.py --year <year>
+```
+
+`datafactory/download_ltr.py` - Fetches land cover change data genered with the LandTrendr algorithm available in Google Earth Engine. 
+
+```bash
+python download_ltr.py --year <year>
+```
+
+Note: We will add instruction to download and process PRISM climate data soon.
+
 ## Refreshing the Forest Community Types layer
 
 To generate the Forest Community Types map we use a pre-trained UNet model. The model was trained on forest composition data produced by the [LEMMA research group](https://lemma.forestry.oregonstate.edu/data) at Oregon State University for Oregon and Washington State. The input data for the model consists of a stack of Sentinel-2 surface reflectance imagery, an 8-band raster with a DEM and 7 topographic metrics, and an 8-band raster with climate variables from PRISM. 
@@ -66,86 +118,21 @@ The model predicts the following community types:
 | 13 | Spruce - Subalpine Fir |
 
 
-### 1. Preliminaries
-
-Run the following commands to setup the environment variables in a `.env` file in the `forest_types` directory:
-
-```
-echo DATADIR=/path/to/data > forest_types/.env
-echo GRID=/path/to/usgs_grid >> forest_types/.env
-```
-
-`DATADIR` is the path to the directory containing the input data and the destination for predictions. The following directories and datasets are expected:
-
-    DATADIR
-    |── tiles
-    |   ├── climatena       <-- PRISM 1971-2000 gridded monthly climate data
-    |   ├── 3dep            <-- Elevation data from the USGS 3D Elevation Program
-    |   ├── sentinel2sr     <-- Sentinel-2 surface reflectance imagery with 10-bands
-    |   └── dynamic_world   <-- Forest/non-forest mask from Dynamic World
-    └── predictions         <-- Output directory for model predictions
-
- `GRID` is the path to the USGS quarter quads grid geojson file.
-
-### 2. Download new input data
-
-`download_dem.py` - Fetchs DEM from the USGS 3D Elevation Program (3DEP) and calculates the following layers: Slope, Aspect, Flow Accumulation, Topographic Position Index (TPI300 and TPI2000), Slope Position Class (SPC300), and Land Form Class. All layers are saved in a single GeoTIFF file with 8 bands.
-
-```bash
-python download_dem.py
-```
-
-`download_dem.py` - Fetches Sentinel-2 surface reflectance imagery from Google Earth Engine. The bands fetched are: B2, B3, B4, B5, B6, B7, B8, B8A, B11, and B12.
-
-```bash
-python download_s2.py --year <year>
-```
-
-`download_s2.py` - Fetches a forest/non-forest mask from Dynamic World land cover classification available in Google Earth Engine. 
-
-```bash
-python download_dw.py --year <year>
-```
-
-Note: We will add instruction to download and process PRISM climate data soon.
-
-### 3. Generate forest community type predictions
-
-Run the script `predict.py`
+Run the script `composition/predict.py`
 
 ```bash
 python predict.py
 ```
 
-### 4. Generate forest community type mosaic
-
-Run the script `create_ft_mosaic.py`
-
-```bash
-python create_ft_mosaic.py
-```
-----
-
-
 ## Refreshing forest structure map layers
 
-Three forest structure map layers, Tree Size Class, Canopy Cover, and Forest Stocking are generated using a pre-trained Gradient Boosting regression model. The model was trained on forest attributes data produced by the [LEMMA research group](https://lemma.forestry.oregonstate.edu/data) at Oregon State University. The input data for the model consists of a stack of Sentinel-2 surface reflectance imagery, an 8-band raster with a DEM and 7 topographic metrics, and an 8-band raster with climate variables from PRISM.
+Three forest structure map layers, Tree Size Class, Canopy Cover, and Forest Stocking are generated using a pre-trained Gradient Boosting regression model. The model was trained on forest attributes data produced by the [LEMMA research group](https://lemma.forestry.oregonstate.edu/data) at Oregon State University. The input data for the model consists of a stack of Sentinel-2 imagery, a DEM, and LandTrendr data.
 
-### 1. Download new input data
+Run script `structure/predict_structure.py`
 
-Run the following Jupyter notebooks from the notebooks directory:
-
-- Download_Dynamic_World-Oregon.ipynb
-- Download_Dynamic_World-Washington.ipynb
-- Download_S2_Ltr_DEM-Oregon.ipynb
-- Download_S2_Ltr_DEM-Washington.ipynb
-
-### 2. Generate forest structure predictions
-
-Run the following Jupyter notebooks:
-
-- Predict_Forest_Structure-Oregon.ipynb
-- Predict_Forest_Structure-Washington.ipynb
+```bash
+python predict_structure.py
+```
 
 ## Refreshing the Soil Type layer
 
